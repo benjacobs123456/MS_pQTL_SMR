@@ -88,11 +88,12 @@ for i in {1..22};
 ```unix
 Rscript ./scripts/make_ma_file.R
 ```
-#### PICK UP HERE 22-09
 ## Run SMR
 ```unix
 qsub ./scripts/ms_smr.sh
 ```
 
-# explore results
+# Explore results
+```unix
 qsub ./scripts/explore_results.sh
+```
