@@ -1,6 +1,5 @@
-Plasma proteins & MS - MR analysis
+# Plasma proteins & MS - MR analysis
 
-# Preamble
 This repo contains code used to produce the results in xxx.
 Code by Shannon Healey and Ben Jacobs.
 
@@ -29,61 +28,52 @@ synapse get -r syn51365303
 ```
 Unzip
 ```unix
-for file in *.tar
-do
-  tar xvf $file &
-done
+cd /data/scratch/hmy117/raw_ukb_pqtl_gwas/
+qsub ./scripts/unzip.sh
 ```
 ## Prepare proteomics data
 
-Get proteomics assay data from UKB
-```unix
-cd /data/Wolfson-UKBB-Dobson/MS_pQTL_SMR/useful_files
-wget https://biobank.ndph.ox.ac.uk/showcase/ukb/auxdata/olink_assay.dat
-```
 Get probe names
 ```unix
-cd /data/Wolfson-UKBB-Dobson/MS_pQTL_SMR/pQTLs
+cd /data/scratch/hmy117/raw_ukb_pqtl_gwas/
 
 # write list of files
-find -type d | grep -v .tar | awk -F/ 'NR>1{print $2}' > probe_names
+find -type d | grep -v .tar | awk -F/ 'NR>1{print $2}' > /data/Wolfson-UKBB-Dobson/MS_pQTL_SMR/pQTLs/probe_names
 ```
 
 Make esd directory (input for SMR)
-````unix
+```unix
 # only run one-off as it will overwrite existing
 # mkdir /data/Wolfson-UKBB-Dobson/MS_pQTL_SMR/esd_files
 ```
 
-Make draft epi file (input for SMR)
-NB `./useful_files/protein_list` is downloaded the GENCODE v44 gene list downloaded directly from the UCSC browser.
+Get filelist with full paths to pQTL GWAS
 ```unix
 cd /data/Wolfson-UKBB-Dobson/MS_pQTL_SMR
-awk 'NR>1{print $2,$7,9,$4,$6,$3}' ./useful_files/protein_list | awk -Fchr '{print $2}' > all_probes.epi
+find /data/Wolfson-UKBB-Dobson/MS_pQTL_SMR/pQTLs -type f | grep .gz > pqtl_filelist
 ```
 
-# get filelist with full names
-cd /data/Wolfson-UKBB-Dobson/MS_pQTL_SMR
-find /data/Wolfson-UKBB-Dobson/MS_pQTL_SMR/pQTLs/ -type f | grep .gz > pqtl_filelist
-
-# make the esds
+Make the esd files
+```unix
 qsub ./scripts/make_esd_files.sh
-
-# navigate to wd
+```
+## Edit epi file and make flist file in R
+```unix
 cd /data/Wolfson-UKBB-Dobson/MS_pQTL_SMR/
-
-# edit epi file and make flist file in R
+module load R/4.2.2
 Rscript ./scripts/make_flist_and_epi_files.R
+```
 
-# make besd file
+## Make besd file
+```unix
 qsub ./scripts/make_besd_file.sh
+```
 
 ## Process 1kg data
 Convert 1kg reference to hg38
 ```unix
 qsub ./scripts/liftover_1kg_ref.sh
 ```
-
 Get 1kg allele frequencies
 ```unix
 for i in {1..22};
@@ -98,9 +88,11 @@ for i in {1..22};
 ```unix
 Rscript ./scripts/make_ma_file.R
 ```
-
+#### PICK UP HERE 22-09
 ## Run SMR
+```unix
 qsub ./scripts/ms_smr.sh
+```
 
 # explore results
 qsub ./scripts/explore_results.sh
